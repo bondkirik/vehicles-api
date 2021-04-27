@@ -38,6 +38,8 @@ class VehicleService
     {
         $vehicles = $this->callApi();
 
+        $this->removeOldVin($vehicles);
+
         foreach ($vehicles ?? [] as $vehicle){
 
             $vehicle_new= [
@@ -76,10 +78,28 @@ class VehicleService
                         'vehicle_id' => $car['id']
                     ]);
                 }
+            }else{
+                $car = Vehicle::update($vehicle_new);
+
+                foreach ($options as $option){
+                    Option::update([
+                        'option' => $option,
+                        'vehicle_id' => $car['id']
+                    ]);
+                }
+
+                foreach ($specs as $spec){
+                    Spec::update([
+                        'spec' => $spec,
+                        'vehicle_id' => $car['id']
+                    ]);
+                }
             }
+
         }
 
     }
+
 
     private function getVehicleJson($vehiclesObj)
     {
@@ -88,5 +108,18 @@ class VehicleService
     private function getVehicleArray($vehiclesJson)
     {
         return json_decode($vehiclesJson,TRUE)['object'];
+    }
+
+    public function removeOldVin($vehicles){
+        foreach ($vehicles ?? [] as $vehicle) {
+            if (!Vehicle::where('vin', $vehicle['vin'])->exists()) {
+                $models = Vehicle::where('vin', '!=', $vehicle['vin'])->get();
+                foreach ($models as $model){
+                    Option::where('vehicle_id',$model['id'])->delete();
+                    Spec::where('vehicle_id', $model['id'])->delete();
+                    Vehicle::where('id', $model['id'])->delete();
+                }
+            }
+        }
     }
 }
