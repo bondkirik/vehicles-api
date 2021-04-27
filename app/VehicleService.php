@@ -4,6 +4,9 @@
 namespace App;
 
 
+use App\Models\Option;
+use App\Models\Spec;
+use App\Models\Vehicle;
 use GuzzleHttp\Client;
 
 class VehicleService
@@ -28,6 +31,53 @@ class VehicleService
         $vehicles = $this->getVehicleArray($vehiclesJson);
 
         return $vehicles ? $vehicles : null;
+
+    }
+
+    public function parseVehicle()
+    {
+        $vehicles = $this->callApi();
+
+        foreach ($vehicles ?? [] as $vehicle){
+
+            $vehicle_new= [
+                'api_id' => $vehicle['id'],
+                'uid' => $vehicle['uid'],
+                'vin' => $vehicle['vin'],
+                'make_and_model' => $vehicle['make-and-model'],
+                'color' => $vehicle['color'],
+                'transmission' => $vehicle['transmission'],
+                'drive_type' => $vehicle['drive-type'],
+                'fuel_type' => $vehicle['fuel-type'],
+                'car_type' => $vehicle['car-type'],
+                'doors' => $vehicle['doors'],
+                'mileage' => $vehicle['mileage'],
+                'kilometrage' => $vehicle['kilometrage'],
+                'license_plate' => $vehicle['license-plate'],
+            ];
+
+            $options = $vehicle['car-options']['car-option'];
+            $specs = $vehicle['specs']['spec'];
+
+            if (!Vehicle::where('vin', $vehicle['vin'])->exists()){
+
+                $car = Vehicle::create($vehicle_new);
+
+                foreach ($options as $option){
+                    Option::create([
+                        'option' => $option,
+                        'vehicle_id' => $car['id']
+                    ]);
+                }
+
+                foreach ($specs as $spec){
+                    Spec::create([
+                        'spec' => $spec,
+                        'vehicle_id' => $car['id']
+                    ]);
+                }
+            }
+        }
 
     }
 

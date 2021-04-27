@@ -29,6 +29,6 @@ class VehicleParse extends Command
      */
     public function handle()
     {
-        (new VehicleService)->callApi();
+        (new VehicleService)->parseVehicle();
     }
 }
