@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\VehicleResource;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 
@@ -15,7 +16,7 @@ class VehicleController extends Controller
      */
     public function index()
     {
-        return Vehicle::all();
+        return VehicleResource::collection(Vehicle::with('options')->get());
     }
 
     /**
@@ -37,7 +38,7 @@ class VehicleController extends Controller
      */
     public function show($id)
     {
-        //
+        return new VehicleResource(Vehicle::with('options')->findOrFail($id));
     }
 
     /**
